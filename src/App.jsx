@@ -103,6 +103,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [requestCode, setRequestCode] = useState('')
   const [isConsultOpen, setIsConsultOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   function selectRoom(roomName) {
     setForm((current) => ({ ...current, room: roomName }))
@@ -114,7 +115,7 @@ function App() {
     const val = type === 'checkbox' ? checked : value
     setForm((current) => ({ ...current, [name]: val }))
     setErrors((current) => ({ ...current, [name]: '' }))
-    setReservationStatus('idle')
+    if (reservationStatus === 'error') setReservationStatus('idle')
   }
 
   function validateReservation() {
@@ -143,9 +144,14 @@ function App() {
       return
     }
 
-    const code = 'REQ-' + Math.random().toString(36).substr(2, 5).toUpperCase()
-    setRequestCode(code)
-    setReservationStatus('success')
+    setIsSubmitting(true)
+    // Simular tiempo de carga de 1.5s (Heurística: Estado del sistema)
+    setTimeout(() => {
+      const code = 'REQ-' + Math.random().toString(36).substr(2, 5).toUpperCase()
+      setRequestCode(code)
+      setReservationStatus('success')
+      setIsSubmitting(false)
+    }, 1500)
   }
 
   function closeMenu() {
@@ -162,6 +168,7 @@ function App() {
         <Rooms onSelectRoom={selectRoom} />
         <Services />
         <TouristGuide />
+        <Reviews />
         <Gallery />
         <Location />
         <Reservation
@@ -170,6 +177,7 @@ function App() {
           onChange={handleInputChange}
           onSubmit={submitReservation}
           status={reservationStatus}
+          isSubmitting={isSubmitting}
           minDate={todayISO()}
           requestCode={requestCode}
           onReset={() => { setReservationStatus('idle'); setForm(initialForm); }}
@@ -211,14 +219,18 @@ function Header({ menuOpen, setMenuOpen, closeMenu, openConsult }) {
 function ConsultModal({ onClose }) {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
-  const [status, setStatus] = useState('idle') // idle, loading, result, error
+  const [status, setStatus] = useState('idle') // idle, loading, result, empty, error
 
   function handleConsult(e) {
     e.preventDefault()
     if(!email || !code) return setStatus('error')
     setStatus('loading')
     setTimeout(() => {
-      setStatus('result')
+      if(code.trim().toUpperCase().startsWith('REQ-')) {
+        setStatus('result')
+      } else {
+        setStatus('empty')
+      }
     }, 1500)
   }
 
@@ -238,6 +250,13 @@ function ConsultModal({ onClose }) {
               <p>Nos comunicaremos contigo a <strong>{email}</strong> o a tu número de WhatsApp para confirmar la disponibilidad y los detalles de pago.</p>
               <button type="button" className="submit-button" onClick={onClose}>Cerrar</button>
             </div>
+          ) : status === 'empty' ? (
+            <div className="consult-result empty-state">
+              <div className="status-badge error-badge">No encontrada</div>
+              <p>No logramos encontrar una solicitud con el código <strong>{code}</strong>.</p>
+              <p>Asegúrate de haber ingresado el código correctamente con el formato REQ-XXXXX. Si el problema persiste, contáctanos por WhatsApp.</p>
+              <button type="button" className="text-button" onClick={() => setStatus('idle')}>Intentar nuevamente</button>
+            </div>
           ) : (
             <form onSubmit={handleConsult} className="contact-form consult-form" noValidate>
               <FormField error={status === 'error' && !email ? 'Requerido' : ''} label="Correo electrónico *">
@@ -248,7 +267,7 @@ function ConsultModal({ onClose }) {
               </FormField>
               
               <button className="submit-button" type="submit" disabled={status === 'loading'}>
-                {status === 'loading' ? 'Buscando...' : 'Consultar Solicitud'}
+                {status === 'loading' ? 'Buscando información...' : 'Consultar Solicitud'}
               </button>
             </form>
           )}
@@ -493,6 +512,63 @@ function TouristGuide() {
   )
 }
 
+function Reviews() {
+  const reviews = [
+    {
+      author: 'Carlos G.',
+      date: 'Hace 2 semanas',
+      stars: 5,
+      text: 'Excelente ubicación muy cerca de la Plaza. La atención de la familia fue de primera, nos ayudaron con los tours.',
+    },
+    {
+      author: 'Lucía M.',
+      date: 'Hace 1 mes',
+      stars: 5,
+      text: 'Lugar tranquilo y seguro. Tienen agua caliente todo el día y el internet funcionó muy bien para trabajar.',
+    },
+    {
+      author: 'Andrea V.',
+      date: 'Hace 3 meses',
+      stars: 4,
+      text: 'Muy buen precio para lo que ofrecen. Me guardaron las maletas sin costo adicional mientras fuimos a Machu Picchu.',
+    },
+  ]
+  return (
+    <section className="section reviews-section" id="reviews">
+      <div className="section-heading center">
+        <h6>Testimonios</h6>
+        <h2>Lo que dicen nuestros huéspedes</h2>
+        <p>Opiniones de viajeros que eligieron quedarse con nosotros.</p>
+      </div>
+      <div className="reviews-grid">
+        {reviews.map((rev, i) => (
+          <article className="review-card" key={i}>
+            <div className="review-header">
+              <div className="review-avatar">{rev.author.charAt(0)}</div>
+              <div className="review-author-info">
+                <strong>{rev.author}</strong>
+                <span>{rev.date}</span>
+              </div>
+              <div className="google-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+              </div>
+            </div>
+            <div className="review-stars">
+              {'★'.repeat(rev.stars)}{'☆'.repeat(5-rev.stars)}
+            </div>
+            <p className="review-text">"{rev.text}"</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function Gallery() {
   const photos = [
     ['https://www.chaquillchaka.com.pe/assets/images/slide_PatioD%C3%ADa1.jpg', 'Patio del hostal'],
@@ -599,7 +675,7 @@ function FaqWidget() {
   )
 }
 
-function Reservation({ errors, form, onChange, onSubmit, status, minDate, requestCode, onReset }) {
+function Reservation({ errors, form, onChange, onSubmit, status, isSubmitting, minDate, requestCode, onReset }) {
   
   const whatsappText = [
     `Hola, he generado la solicitud ${requestCode} en la web y quisiera confirmar mi reserva en Chaquill Chak'a Hostal.`,
@@ -677,29 +753,31 @@ function Reservation({ errors, form, onChange, onSubmit, status, minDate, reques
         ) : (
           <form className="contact-form" onSubmit={onSubmit} noValidate>
             <div className="form-intro"><span>RESERVAS</span><h3>Consulta disponibilidad</h3><p>Los campos con * son obligatorios.</p></div>
-            <FormField error={errors.name} label="Nombre completo *"><input name="name" autoComplete="name" value={form.name} onChange={onChange} placeholder="Ej. María Pérez" required aria-invalid={Boolean(errors.name)} /></FormField>
-            <FormField error={errors.phone} label="Teléfono o WhatsApp *"><input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={onChange} placeholder="Tu número de contacto" required aria-invalid={Boolean(errors.phone)} /></FormField>
-            <FormField error={errors.email} label="Correo electrónico *"><input name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} placeholder="nombre@correo.com" required aria-invalid={Boolean(errors.email)} /></FormField>
+            <FormField error={errors.name} label="Nombre completo *"><input name="name" autoComplete="name" value={form.name} onChange={onChange} placeholder="Ej. María Pérez" required aria-invalid={Boolean(errors.name)} disabled={isSubmitting}/></FormField>
+            <FormField error={errors.phone} label="Teléfono o WhatsApp *"><input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={onChange} placeholder="Tu número de contacto" required aria-invalid={Boolean(errors.phone)} disabled={isSubmitting}/></FormField>
+            <FormField error={errors.email} label="Correo electrónico *"><input name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} placeholder="nombre@correo.com" required aria-invalid={Boolean(errors.email)} disabled={isSubmitting}/></FormField>
             
             <div className="form-row">
-              <FormField error={errors.guests} label="Número de huéspedes *"><select name="guests" value={form.guests} onChange={onChange} required aria-invalid={Boolean(errors.guests)}><option value="">Selecciona cantidad</option>{[1, 2, 3, 4, 5, 6, 7, 8].map((guest) => <option key={guest} value={guest}>{guest} {guest === 1 ? 'persona' : 'personas'}</option>)}</select></FormField>
-              <FormField error={errors.room} label="Tipo de habitación *"><select name="room" value={form.room} onChange={onChange} required aria-invalid={Boolean(errors.room)}><option value="">Selecciona una habitación</option>{rooms.map((room) => <option key={room.id} value={room.name}>{room.name}</option>)}</select></FormField>
+              <FormField error={errors.guests} label="Número de huéspedes *"><select name="guests" value={form.guests} onChange={onChange} required aria-invalid={Boolean(errors.guests)} disabled={isSubmitting}><option value="">Selecciona cantidad</option>{[1, 2, 3, 4, 5, 6, 7, 8].map((guest) => <option key={guest} value={guest}>{guest} {guest === 1 ? 'persona' : 'personas'}</option>)}</select></FormField>
+              <FormField error={errors.room} label="Tipo de habitación *"><select name="room" value={form.room} onChange={onChange} required aria-invalid={Boolean(errors.room)} disabled={isSubmitting}><option value="">Selecciona una habitación</option>{rooms.map((room) => <option key={room.id} value={room.name}>{room.name}</option>)}</select></FormField>
             </div>
             
             <div className="form-row">
-              <FormField error={errors.arrival} label="Fecha de llegada *"><input name="arrival" type="date" min={minDate} value={form.arrival} onChange={onChange} required aria-invalid={Boolean(errors.arrival)} /></FormField>
-              <FormField error={errors.departure} label="Fecha de salida *"><input name="departure" type="date" min={form.arrival || minDate} value={form.departure} onChange={onChange} required aria-invalid={Boolean(errors.departure)} /></FormField>
+              <FormField error={errors.arrival} label="Fecha de llegada *"><input name="arrival" type="date" min={minDate} value={form.arrival} onChange={onChange} required aria-invalid={Boolean(errors.arrival)} disabled={isSubmitting}/></FormField>
+              <FormField error={errors.departure} label="Fecha de salida *"><input name="departure" type="date" min={form.arrival || minDate} value={form.departure} onChange={onChange} required aria-invalid={Boolean(errors.departure)} disabled={isSubmitting}/></FormField>
             </div>
             
             <label className="form-field full-field checkbox-field">
-              <input type="checkbox" name="privacy" checked={form.privacy} onChange={onChange} required aria-invalid={Boolean(errors.privacy)} />
+              <input type="checkbox" name="privacy" checked={form.privacy} onChange={onChange} required aria-invalid={Boolean(errors.privacy)} disabled={isSubmitting}/>
               <span>Acepto la <a href="#privacy">Política de Privacidad</a> y consiento el tratamiento de mis datos personales según la Ley N° 29733. *</span>
             </label>
             {errors.privacy && <small className="field-error checkbox-error">{errors.privacy}</small>}
 
             {status === 'error' && <p className="form-status error" role="alert">Hay campos por revisar. Lee los mensajes debajo de cada campo e inténtalo nuevamente.</p>}
             
-            <button className="submit-button" type="submit">Generar solicitud de reserva <span aria-hidden="true">→</span></button>
+            <button className="submit-button" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Procesando solicitud...' : <>Generar solicitud de reserva <span aria-hidden="true">→</span></>}
+            </button>
             <small className="privacy-note">Esta acción generará un código seguro sin compromiso de pago inmediato.</small>
           </form>
         )}
