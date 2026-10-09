@@ -367,6 +367,7 @@ function About() {
 
 function Rooms({ onSelectRoom }) {
   const [activeRoom, setActiveRoom] = useState(null)
+  const [filter, setFilter] = useState('all') // 'all', 'couples', 'groups'
   const closeRef = useRef(null)
 
   useEffect(() => {
@@ -392,6 +393,13 @@ function Rooms({ onSelectRoom }) {
     setTimeout(() => onSelectRoom(roomName), 80)
   }
 
+  const filteredRooms = rooms.filter(room => {
+    if (filter === 'all') return true
+    if (filter === 'couples') return room.id === 'matrimonial' || room.id === 'doble'
+    if (filter === 'groups') return room.id === 'familiar'
+    return true
+  })
+
   return (
     <section className="section rooms-section" id="rooms">
       <div className="section-heading center">
@@ -400,8 +408,14 @@ function Rooms({ onSelectRoom }) {
         <p>Elige una opción y consulta directamente su disponibilidad y tarifa.</p>
       </div>
 
+      <div className="room-filters">
+        <button type="button" className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Todas</button>
+        <button type="button" className={`filter-btn ${filter === 'couples' ? 'active' : ''}`} onClick={() => setFilter('couples')}>Parejas</button>
+        <button type="button" className={`filter-btn ${filter === 'groups' ? 'active' : ''}`} onClick={() => setFilter('groups')}>Familias / Grupos</button>
+      </div>
+
       <div className="rooms-grid">
-        {rooms.map((room) => (
+        {filteredRooms.map((room) => (
           <article className="room-item" key={room.id}>
             <button
               type="button"

@@ -1094,3 +1094,40 @@ input:disabled, select:disabled {
   color: #64748b;
   margin-bottom: 1rem;
 }
+
+/* --- Filtros de Habitaciones --- */
+.room-filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+.filter-btn.active {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: white;
+}
+
+/* --- ACCESIBILIDAD (Ley N° 29973) --- */
+*:focus-visible {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2) !important;
+  transition: none !important;
+}
