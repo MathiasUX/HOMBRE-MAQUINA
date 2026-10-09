@@ -599,3 +599,407 @@ footer { padding: 58px max(24px, calc((100% - 1140px) / 2)) 50px; background: li
 .wa-icon {
   margin-top: -2px;
 }
+
+/* =========================================================
+   AJUSTE VISUAL: MIS RESERVAS Y FORMULARIO DE RESERVAS
+   Se agrega al final para respetar los estilos existentes.
+   ========================================================= */
+
+/* Modal "Mis Reservas": proporciones y alineación */
+.consult-modal {
+  width: min(540px, 100%) !important;
+  max-width: 540px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 24px;
+}
+
+.consult-modal .room-modal-body {
+  width: 100%;
+  max-height: min(780px, calc(100vh - 40px));
+  padding: clamp(30px, 5vw, 46px);
+  background:
+    radial-gradient(circle at top right, rgba(185, 109, 59, .09), transparent 36%),
+    #fff;
+}
+
+.consult-modal .room-modal-eyebrow {
+  margin-bottom: 12px;
+  color: var(--accent-dark);
+  font-size: 11px;
+  letter-spacing: .19em;
+}
+
+.consult-modal .room-modal-body h3 {
+  max-width: 390px;
+  margin: 0 auto 14px 0;
+  font-size: clamp(30px, 4vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -.025em;
+}
+
+.consult-modal .room-modal-description {
+  margin: 0 0 26px;
+  color: #66716a;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.consult-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 19px;
+  width: 100%;
+  margin: 0;
+  padding: 24px;
+  border: 1px solid #ece7de;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 12px 32px rgba(36, 59, 50, .07);
+}
+
+.consult-form .form-field {
+  gap: 9px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.consult-form .form-field input {
+  min-height: 52px;
+  padding: 14px 15px;
+  border: 1px solid #deded7;
+  border-radius: 10px;
+  background: #fcfbf8;
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.consult-form .form-field input::placeholder {
+  color: #9a9e98;
+}
+
+.consult-form .form-field input:focus {
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(185, 109, 59, .12);
+}
+
+.consult-form .submit-button {
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 2px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: 0 8px 18px rgba(143, 77, 39, .16);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.consult-form .submit-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 22px rgba(143, 77, 39, .22);
+}
+
+.consult-form .submit-button:disabled {
+  cursor: wait;
+  opacity: .72;
+  transform: none;
+}
+
+.consult-modal .consult-result {
+  width: 100%;
+  padding: 24px;
+  border: 1px solid #ece7de;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+}
+
+.consult-modal .consult-result p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.consult-modal .consult-result .submit-button {
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 10px;
+}
+
+/* Formulario final: tarjeta más limpia, simétrica y consistente */
+.reservation-section {
+  padding-top: clamp(68px, 8vw, 100px);
+  padding-bottom: clamp(68px, 8vw, 100px);
+}
+
+.reservation-grid {
+  grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+  align-items: start;
+  gap: clamp(34px, 5vw, 70px);
+}
+
+.reservation-section .contact-form {
+  align-self: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 18px;
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 65px rgba(0, 0, 0, .2);
+}
+
+.reservation-section .form-intro {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eee9e0;
+}
+
+.reservation-section .form-intro > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-dark);
+  font-size: 11px;
+  letter-spacing: .2em;
+}
+
+.reservation-section .form-intro > span::before {
+  width: 24px;
+  height: 2px;
+  background: var(--accent);
+  content: '';
+}
+
+.reservation-section .form-intro h3 {
+  margin: 10px 0 7px;
+  font-size: clamp(27px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.reservation-section .form-intro p {
+  margin: 0;
+  color: #727a73;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.reservation-section .form-field {
+  gap: 9px;
+  color: #2b493b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reservation-section .form-field input:not([type="checkbox"]),
+.reservation-section .form-field select,
+.reservation-section .form-field textarea {
+  min-height: 50px;
+  padding: 13px 14px;
+  border: 1px solid #dedfd8;
+  border-radius: 9px;
+  background-color: #fcfbf8;
+  font-size: 13px;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.reservation-section .form-field input:not([type="checkbox"]):focus,
+.reservation-section .form-field select:focus,
+.reservation-section .form-field textarea:focus {
+  border-color: var(--accent);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(185, 109, 59, .11);
+}
+
+.reservation-section .form-field input::placeholder {
+  color: #9a9e98;
+}
+
+.reservation-section .form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  grid-column: 1 / -1;
+}
+
+.reservation-section .form-row .form-field {
+  min-width: 0;
+}
+
+.reservation-section .checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 15px;
+  border: 1px solid #eee9e0;
+  border-radius: 10px;
+  background: #faf8f3;
+}
+
+.reservation-section .checkbox-field input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 2px 0 0;
+  accent-color: var(--green);
+}
+
+.reservation-section .checkbox-field span {
+  color: #68726b;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.reservation-section .checkbox-field a {
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.reservation-section .checkbox-error {
+  grid-column: 1 / -1;
+  margin: -12px 0 0;
+}
+
+.reservation-section .field-error {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.reservation-section .form-status {
+  border-radius: 9px;
+  padding: 13px 15px;
+  font-size: 12px;
+}
+
+.reservation-section .submit-button {
+  min-height: 53px;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  box-shadow: 0 8px 18px rgba(143, 77, 39, .15);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.reservation-section .submit-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(143, 77, 39, .22);
+}
+
+.reservation-section .privacy-note {
+  color: #7a817b;
+  font-size: 11px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.reservation-section .success-panel {
+  border-radius: 20px;
+  padding: clamp(24px, 3vw, 36px);
+}
+
+/* Alineación de la columna informativa con la tarjeta del formulario */
+.reservation-section .contact-copy {
+  padding-top: 8px;
+}
+
+.reservation-section .contact-copy .section-heading h6 {
+  font-size: 12px;
+  letter-spacing: .18em;
+}
+
+.reservation-section .contact-copy .section-heading h2 {
+  max-width: 560px;
+}
+
+.reservation-section .contact-copy > .contact-lead {
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.reservation-section .contact-cards {
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.reservation-section .contact-card {
+  padding: 21px 23px;
+  border-radius: 14px;
+}
+
+/* Adaptación para tabletas */
+@media (max-width: 900px) {
+  .reservation-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+  }
+
+  .reservation-section .contact-copy {
+    max-width: 700px;
+  }
+
+  .reservation-section .contact-form {
+    width: 100%;
+    max-width: 720px;
+    justify-self: center;
+  }
+}
+
+/* Adaptación para móviles */
+@media (max-width: 560px) {
+  .consult-modal .room-modal-body {
+    padding: 30px 20px 22px;
+  }
+
+  .consult-modal .room-modal-body h3 {
+    padding-right: 12px;
+    font-size: 29px;
+  }
+
+  .consult-form {
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .reservation-section .contact-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+    padding: 21px 18px;
+    border-radius: 16px;
+  }
+
+  .reservation-section .form-intro,
+  .reservation-section .form-row,
+  .reservation-section .full-field,
+  .reservation-section .form-status,
+  .reservation-section .submit-button,
+  .reservation-section .privacy-note {
+    grid-column: 1 / -1;
+  }
+
+  .reservation-section .form-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .reservation-section .form-intro h3 {
+    font-size: 28px;
+  }
+
+  .reservation-section .contact-card {
+    padding: 18px 16px;
+  }
+
+  .reservation-section .receipt-row {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reservation-section .receipt-row strong {
+    overflow-wrap: anywhere;
+  }
+}
