@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const WHATSAPP_NUMBER = '51984992475'
+const SLIDE_INTERVAL = 5500
 
 /* ⚠️ CAMBIA estos enlaces por los perfiles reales del hostal */
 const SOCIAL_LINKS = [
@@ -50,9 +51,9 @@ const rooms = [
 ]
 
 const heroSlides = [
-  'https://www.chaquillchaka.com.pe/assets/images/slide_PatioD%C3%ADa1.jpg',
-  'https://www.chaquillchaka.com.pe/assets/images/Slide2-Vista-Piso1-comedor.jpg',
-  'https://www.chaquillchaka.com.pe/assets/images/slide_habitacion.jpg',
+  { src: 'https://www.chaquillchaka.com.pe/assets/images/slide_PatioD%C3%ADa1.jpg', label: 'Patio del hostal' },
+  { src: 'https://www.chaquillchaka.com.pe/assets/images/Slide2-Vista-Piso1-comedor.jpg', label: 'Vista del comedor' },
+  { src: 'https://www.chaquillchaka.com.pe/assets/images/slide_habitacion.jpg', label: 'Nuestras habitaciones' },
 ]
 
 const faqItems = [
@@ -96,15 +97,10 @@ function todayISO() {
 }
 
 function App() {
-  const [currentSlide, setCurrentSlide] = useState(0)
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [reservationStatus, setReservationStatus] = useState('idle')
   const [menuOpen, setMenuOpen] = useState(false)
-
-  function goToSlide(direction) {
-    setCurrentSlide((current) => (current + direction + heroSlides.length) % heroSlides.length)
-  }
 
   function selectRoom(roomName) {
     setForm((current) => ({ ...current, room: roomName }))
@@ -168,7 +164,7 @@ function App() {
     <>
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} closeMenu={closeMenu} />
       <main>
-        <Hero currentSlide={currentSlide} onSlideChange={goToSlide} />
+        <Hero />
         <TrustStrip />
         <About />
         <Rooms onSelectRoom={selectRoom} />
@@ -216,7 +212,21 @@ function Header({ menuOpen, setMenuOpen, closeMenu }) {
   )
 }
 
-function Hero({ currentSlide, onSlideChange }) {
+
+function Hero() {
+  const [current, setCurrent] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (paused) return undefined
+
+    const timer = setInterval(() => {
+      setCurrent((current) => (current + 1) % heroSlides.length)
+    }, SLIDE_INTERVAL)
+
+    return () => clearInterval(timer)
+  }, [paused])
+
   return (
     <section id="top" className="main-banner-section">
       <div className="banner-left">
@@ -224,17 +234,60 @@ function Hero({ currentSlide, onSlideChange }) {
           <span className="eyebrow">Hospitalidad en Cusco</span>
           <h1>Chaquill Chak'a</h1>
           <p>Hospédate en el corazón histórico de Cusco</p>
-          <a href="#reservation" className="white-button">Consulta tu reserva <span aria-hidden="true">→</span></a>
-          <div className="hero-note"><span aria-hidden="true">⌖</span> Calle Belén N.° 418, Cusco</div>
+          <a href="#reservation" className="white-button">
+            Consulta tu reserva <span aria-hidden="true">→</span>
+          </a>
+          <div className="hero-note">
+            <span aria-hidden="true">⌖</span>
+            Calle Belén N.° 418, Cusco
+          </div>
         </div>
       </div>
-      <div className="banner-slider">
-        <img src={heroSlides[currentSlide]} alt={`Ambiente de Chaquill Chak'a Hostal, fotografía ${currentSlide + 1}`} fetchPriority="high" />
-        <button type="button" className="slider-arrow prev" onClick={() => onSlideChange(-1)} aria-label="Imagen anterior">‹</button>
-        <button type="button" className="slider-arrow next" onClick={() => onSlideChange(1)} aria-label="Imagen siguiente">›</button>
-        <div className="slider-dots" aria-label="Seleccionar fotografía">
+
+      <div
+        className={`banner-slider ${paused ? 'is-paused' : ''}`}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setPaused(false)
+          }
+        }}
+      >
+        <div className="slides">
           {heroSlides.map((slide, index) => (
-            <button className={index === currentSlide ? 'active' : ''} key={slide} type="button" onClick={() => onSlideChange(index - currentSlide)} aria-label={`Ver imagen ${index + 1}`} aria-pressed={index === currentSlide} />
+            <img
+              key={slide.src}
+              className={`slide ${index === current ? 'is-active' : ''}`}
+              src={slide.src}
+              alt={`${slide.label} en Chaquill Chak'a Hostal`}
+              aria-hidden={index !== current}
+              fetchPriority={index === 0 ? 'high' : 'auto'}
+            />
+          ))}
+        </div>
+
+        <div className="slide-info" aria-live="polite">
+          <span className="slide-label" key={current}>
+            {heroSlides[current].label}
+          </span>
+        </div>
+
+        <div className="slider-dots" role="group" aria-label="Seleccionar fotografía">
+          {heroSlides.map((slide, index) => (
+            <button
+              key={slide.src}
+              type="button"
+              className={index === current ? 'active' : ''}
+              onClick={() => setCurrent(index)}
+              aria-label={`Ver imagen ${index + 1}: ${slide.label}`}
+              aria-pressed={index === current}
+            >
+              {index === current && !paused && (
+                <span className="dot-progress" key={current} />
+              )}
+            </button>
           ))}
         </div>
       </div>
@@ -502,10 +555,23 @@ function Reservation({ errors, form, onChange, onSubmit, status, minDate }) {
       <div className="two-column reservation-grid">
         <div className="left-text-content contact-copy">
           <div className="section-heading"><h6>Hablemos de tu viaje</h6><h2>Prepara tu estadía en unos pasos</h2></div>
-          <p>Cuéntanos qué habitación buscas y cuáles son tus fechas. Revisaremos tu solicitud cuando recibamos tu mensaje por WhatsApp.</p>
+          <p className="contact-lead">Cuéntanos qué habitación buscas y cuáles son tus fechas. Revisaremos tu solicitud cuando recibamos tu mensaje por WhatsApp.</p>
           <div className="contact-cards">
-            <div className="contact-card"><span aria-hidden="true">☏</span><strong>Teléfono y WhatsApp</strong><a href="tel:+5184211511">(+51) 84 211 511</a><a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">(+51) 984 992 475</a></div>
-            <div className="contact-card"><span aria-hidden="true">✉</span><strong>Correo electrónico</strong><a href="mailto:reservas@chaquillchaka.com.pe">reservas@chaquillchaka.com.pe</a></div>
+            <div className="contact-card">
+              <span className="contact-icon" aria-hidden="true">☏</span>
+              <div>
+                <strong>Teléfono y WhatsApp</strong>
+                <a href="tel:+5184211511">(+51) 84 211 511</a>
+                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">(+51) 984 992 475</a>
+              </div>
+            </div>
+            <div className="contact-card">
+              <span className="contact-icon" aria-hidden="true">✉</span>
+              <div>
+                <strong>Correo electrónico</strong>
+                <a href="mailto:reservas@chaquillchaka.com.pe">reservas@chaquillchaka.com.pe</a>
+              </div>
+            </div>
           </div>
         </div>
 
