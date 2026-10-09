@@ -4,7 +4,6 @@ import './App.css'
 const WHATSAPP_NUMBER = '51984992475'
 const SLIDE_INTERVAL = 5500
 
-/* ⚠️ CAMBIA estos enlaces por los perfiles reales del hostal */
 const SOCIAL_LINKS = [
   { id: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/' },
   { id: 'x', label: 'X', url: 'https://x.com/' },
@@ -26,6 +25,7 @@ const rooms = [
     image: 'https://www.chaquillchaka.com.pe/assets/images/habitacion-simple.jpg',
     description: 'Una opción práctica para quienes viajan solos y desean descansar después de recorrer Cusco.',
     capacity: '1 huésped',
+    price: 'S/ 60.00',
   },
   {
     id: 'doble',
@@ -33,6 +33,7 @@ const rooms = [
     image: 'https://www.chaquillchaka.com.pe/assets/images/habitacion-doble.jpg',
     description: 'Una alternativa para compartir la estadía con un amigo o compañero de viaje.',
     capacity: 'Hasta 2 huéspedes',
+    price: 'S/ 90.00',
   },
   {
     id: 'matrimonial',
@@ -40,13 +41,15 @@ const rooms = [
     image: 'https://www.chaquillchaka.com.pe/assets/images/habitacion-matrimonial.jpg',
     description: 'Un espacio pensado para parejas que visitan la ciudad imperial.',
     capacity: 'Hasta 2 huéspedes',
+    price: 'S/ 100.00',
   },
   {
     id: 'familiar',
     name: 'Habitación familiar',
     image: 'https://www.chaquillchaka.com.pe/assets/images/Hab-Doble.JPG',
     description: 'Consulta esta opción si viajas en familia o con un grupo.',
-    capacity: 'Capacidad por confirmar',
+    capacity: 'Hasta 4 huéspedes',
+    price: 'S/ 150.00',
   },
 ]
 
@@ -59,23 +62,19 @@ const heroSlides = [
 const faqItems = [
   {
     q: '¿Cómo puedo consultar una reserva?',
-    a: 'Completa el formulario con tus datos y fechas. Al enviarlo, se abrirá WhatsApp con el mensaje preparado para que puedas mandarlo al hostal.',
+    a: 'Completa el formulario con tus datos y fechas. Al enviarlo, se generará un código de solicitud y podrás confirmar los detalles vía WhatsApp.',
   },
   {
     q: '¿Dónde puedo ver las tarifas?',
-    a: 'Las tarifas dependen de la habitación y las fechas. Selecciona una habitación o completa el formulario para consultar el precio y la disponibilidad.',
+    a: 'Las tarifas base se encuentran en la sección de Habitaciones. Recuerda que pueden variar según la temporada.',
   },
   {
     q: '¿Qué servicios incluye la habitación?',
-    a: 'Los servicios incluidos deben confirmarse directamente con el hostal al consultar tu habitación.',
+    a: 'Todas nuestras habitaciones incluyen baño privado y agua caliente. El WiFi de cortesía está disponible en áreas comunes.',
   },
   {
     q: '¿Cuál es la dirección?',
     a: 'Estamos en Calle Belén N.° 418, Cusco. Puedes abrir la ubicación en Google Maps desde la sección Cómo llegar.',
-  },
-  {
-    q: '¿Cómo me comunico con el hostal?',
-    a: 'Puedes llamar al (+51) 84 211 511, escribir por WhatsApp al (+51) 984 992 475 o enviar un correo a reservas@chaquillchaka.com.pe.',
   },
 ]
 
@@ -88,6 +87,7 @@ const initialForm = {
   arrival: '',
   departure: '',
   message: '',
+  privacy: false,
 }
 
 function todayISO() {
@@ -101,6 +101,8 @@ function App() {
   const [errors, setErrors] = useState({})
   const [reservationStatus, setReservationStatus] = useState('idle')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [requestCode, setRequestCode] = useState('')
+  const [isConsultOpen, setIsConsultOpen] = useState(false)
 
   function selectRoom(roomName) {
     setForm((current) => ({ ...current, room: roomName }))
@@ -108,8 +110,9 @@ function App() {
   }
 
   function handleInputChange(event) {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
+    const { name, value, type, checked } = event.target
+    const val = type === 'checkbox' ? checked : value
+    setForm((current) => ({ ...current, [name]: val }))
     setErrors((current) => ({ ...current, [name]: '' }))
     setReservationStatus('idle')
   }
@@ -117,12 +120,13 @@ function App() {
   function validateReservation() {
     const nextErrors = {}
     if (!form.name.trim()) nextErrors.name = 'Escribe tu nombre y apellido.'
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Revisa el formato del correo.'
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Revisa el formato del correo.'
     if (form.phone.trim().replace(/\D/g, '').length < 7) nextErrors.phone = 'Escribe un teléfono válido.'
     if (!form.room) nextErrors.room = 'Selecciona un tipo de habitación.'
     if (!form.guests) nextErrors.guests = 'Selecciona cuántas personas se hospedarán.'
     if (!form.arrival) nextErrors.arrival = 'Selecciona la fecha de llegada.'
     if (!form.departure) nextErrors.departure = 'Selecciona la fecha de salida.'
+    if (!form.privacy) nextErrors.privacy = 'Debes aceptar la política de privacidad y protección de datos.'
     if (form.arrival && form.arrival < todayISO()) nextErrors.arrival = 'La llegada no puede ser una fecha pasada.'
     if (form.arrival && form.departure && form.departure <= form.arrival) {
       nextErrors.departure = 'La salida debe ser posterior a la llegada.'
@@ -139,21 +143,9 @@ function App() {
       return
     }
 
-    const whatsappText = [
-      "Hola, quisiera consultar disponibilidad en Chaquill Chak'a Hostal.",
-      '',
-      `Nombre: ${form.name.trim()}`,
-      `Teléfono: ${form.phone.trim()}`,
-      form.email.trim() ? `Correo: ${form.email.trim()}` : null,
-      `Tipo de habitación: ${form.room}`,
-      `Número de huéspedes: ${form.guests}`,
-      `Fecha de llegada: ${form.arrival}`,
-      `Fecha de salida: ${form.departure}`,
-      `Mensaje adicional: ${form.message.trim() || 'Ninguno'}`,
-    ].filter(Boolean).join('\n')
-
+    const code = 'REQ-' + Math.random().toString(36).substr(2, 5).toUpperCase()
+    setRequestCode(code)
     setReservationStatus('success')
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText)}`, '_blank', 'noopener,noreferrer')
   }
 
   function closeMenu() {
@@ -162,13 +154,14 @@ function App() {
 
   return (
     <>
-      <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} closeMenu={closeMenu} />
+      <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} closeMenu={closeMenu} openConsult={() => setIsConsultOpen(true)} />
       <main>
         <Hero />
         <TrustStrip />
         <About />
         <Rooms onSelectRoom={selectRoom} />
         <Services />
+        <TouristGuide />
         <Gallery />
         <Location />
         <Reservation
@@ -178,6 +171,8 @@ function App() {
           onSubmit={submitReservation}
           status={reservationStatus}
           minDate={todayISO()}
+          requestCode={requestCode}
+          onReset={() => { setReservationStatus('idle'); setForm(initialForm); }}
         />
       </main>
       <Footer />
@@ -185,11 +180,13 @@ function App() {
       <a className="floating-whatsapp" href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hola, quisiera información sobre las habitaciones de Chaquill Chak'a Hostal.")}`} target="_blank" rel="noreferrer" aria-label="Consultar por WhatsApp">
         <span className="whatsapp-symbol" aria-hidden="true">◉</span><span>Consultar por WhatsApp</span>
       </a>
+      
+      {isConsultOpen && <ConsultModal onClose={() => setIsConsultOpen(false)} />}
     </>
   )
 }
 
-function Header({ menuOpen, setMenuOpen, closeMenu }) {
+function Header({ menuOpen, setMenuOpen, closeMenu, openConsult }) {
   return (
     <header className="header-area">
       <nav className="main-nav" aria-label="Navegación principal">
@@ -201,10 +198,9 @@ function Header({ menuOpen, setMenuOpen, closeMenu }) {
         </button>
         <div className={`nav-links ${menuOpen ? 'is-open' : ''}`} id="nav-links">
           <a href="#top" onClick={closeMenu}>Inicio</a>
-          <a href="#about" onClick={closeMenu}>Nosotros</a>
           <a href="#rooms" onClick={closeMenu}>Habitaciones</a>
-          <a href="#services" onClick={closeMenu}>Servicios</a>
-          <a href="#location" onClick={closeMenu}>Ubicación</a>
+          <a href="#guide" onClick={closeMenu}>Guía Turística</a>
+          <a className="nav-cta secondary" href="#consultar" onClick={(e) => { e.preventDefault(); closeMenu(); openConsult(); }}>Mis Reservas</a>
           <a className="nav-cta" href="#reservation" onClick={closeMenu}>Reservar</a>
         </div>
       </nav>
@@ -212,6 +208,55 @@ function Header({ menuOpen, setMenuOpen, closeMenu }) {
   )
 }
 
+function ConsultModal({ onClose }) {
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [status, setStatus] = useState('idle') // idle, loading, result, error
+
+  function handleConsult(e) {
+    e.preventDefault()
+    if(!email || !code) return setStatus('error')
+    setStatus('loading')
+    setTimeout(() => {
+      setStatus('result')
+    }, 1500)
+  }
+
+  return (
+    <div className="room-modal-backdrop" onClick={onClose}>
+      <div className="room-modal consult-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Consultar estado de reserva">
+        <button type="button" className="room-modal-close" onClick={onClose} aria-label="Cerrar">×</button>
+        <div className="room-modal-body">
+          <span className="room-modal-eyebrow">Atención al cliente</span>
+          <h3>Consultar estado de solicitud</h3>
+          <p className="room-modal-description">Ingresa tu correo electrónico y el código de solicitud (Ej. REQ-XXXXX) para revisar el estado de tu reserva.</p>
+          
+          {status === 'result' ? (
+            <div className="consult-result">
+              <div className="status-badge pending">Pendiente de Confirmación</div>
+              <p>Tu solicitud <strong>{code}</strong> ha sido recibida y está siendo revisada por nuestro equipo.</p>
+              <p>Nos comunicaremos contigo a <strong>{email}</strong> o a tu número de WhatsApp para confirmar la disponibilidad y los detalles de pago.</p>
+              <button type="button" className="submit-button" onClick={onClose}>Cerrar</button>
+            </div>
+          ) : (
+            <form onSubmit={handleConsult} className="contact-form consult-form" noValidate>
+              <FormField error={status === 'error' && !email ? 'Requerido' : ''} label="Correo electrónico *">
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Ej. correo@ejemplo.com" disabled={status === 'loading'} />
+              </FormField>
+              <FormField error={status === 'error' && !code ? 'Requerido' : ''} label="Código de Solicitud *">
+                <input type="text" value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="Ej. REQ-A1B2C" disabled={status === 'loading'} />
+              </FormField>
+              
+              <button className="submit-button" type="submit" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Buscando...' : 'Consultar Solicitud'}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function Hero() {
   const [current, setCurrent] = useState(0)
@@ -265,29 +310,6 @@ function Hero() {
               aria-hidden={index !== current}
               fetchPriority={index === 0 ? 'high' : 'auto'}
             />
-          ))}
-        </div>
-
-        <div className="slide-info" aria-live="polite">
-          <span className="slide-label" key={current}>
-            {heroSlides[current].label}
-          </span>
-        </div>
-
-        <div className="slider-dots" role="group" aria-label="Seleccionar fotografía">
-          {heroSlides.map((slide, index) => (
-            <button
-              key={slide.src}
-              type="button"
-              className={index === current ? 'active' : ''}
-              onClick={() => setCurrent(index)}
-              aria-label={`Ver imagen ${index + 1}: ${slide.label}`}
-              aria-pressed={index === current}
-            >
-              {index === current && !paused && (
-                <span className="dot-progress" key={current} />
-              )}
-            </button>
           ))}
         </div>
       </div>
@@ -375,15 +397,15 @@ function Rooms({ onSelectRoom }) {
 
             <div className="down-content">
               <h3>{room.name}</h3>
+              <p className="room-price">Desde <strong>{room.price}</strong> / noche</p>
               <button type="button" className="room-consult-button" onClick={() => setActiveRoom(room)}>
-                <span>Consultar habitación</span>
+                <span>Ver detalles</span>
                 <span aria-hidden="true">＋</span>
               </button>
             </div>
           </article>
         ))}
       </div>
-      <p className="section-footnote">Las tarifas, la capacidad final y los servicios incluidos se confirman directamente con el hostal.</p>
 
       {activeRoom && (
         <div className="room-modal-backdrop" onClick={() => setActiveRoom(null)}>
@@ -408,14 +430,13 @@ function Rooms({ onSelectRoom }) {
 
               <ul className="room-features">
                 <li><strong>Capacidad:</strong> {activeRoom.capacity}</li>
-                <li><strong>Tipo de cama:</strong> consultar configuración.</li>
-                <li><strong>Internet / Wi-Fi:</strong> confirmar disponibilidad.</li>
-                <li><strong>Baño privado y agua caliente:</strong> consultar con el hostal.</li>
+                <li><strong>Internet / Wi-Fi:</strong> Incluido en áreas comunes.</li>
+                <li><strong>Baño:</strong> Privado con agua caliente.</li>
               </ul>
 
               <div className="room-price-detail">
-                <span>Precio por 24 horas</span>
-                <strong>Consultar tarifa</strong>
+                <span>Precio referencial por noche</span>
+                <strong>{activeRoom.price}</strong>
               </div>
 
               <button type="button" className="room-reserve-button" onClick={() => reserve(activeRoom.name)}>
@@ -439,6 +460,35 @@ function Services() {
     <section className="section services-section" id="services">
       <div className="section-heading center"><h6>Para planificar tu estadía</h6><h2>Información clara antes de reservar</h2></div>
       <div className="services-grid">{services.map(([number, title, description]) => <article className="service-card" key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div>
+    </section>
+  )
+}
+
+function TouristGuide() {
+  return (
+    <section className="section guide-section" id="guide">
+      <div className="section-heading center">
+        <h6>Guía para Turistas</h6>
+        <h2>Antes de llegar a Cusco</h2>
+        <p>Consejos útiles para que tu viaje a la ciudad imperial sea inolvidable y seguro.</p>
+      </div>
+      <div className="guide-grid">
+        <article className="guide-card">
+          <div className="guide-icon">🏔️</div>
+          <h3>La Altura y el Soroche</h3>
+          <p>Cusco se encuentra a 3,399 metros sobre el nivel del mar. Para evitar el mal de altura (soroche), te recomendamos tomar las cosas con calma el primer día, hidratarte bien, comer ligero y tomar un tradicional mate de coca.</p>
+        </article>
+        <article className="guide-card">
+          <div className="guide-icon">⛅</div>
+          <h3>El Clima Cusqueño</h3>
+          <p>El clima en los Andes puede cambiar rápidamente. Los días suelen ser soleados y cálidos, pero las noches y madrugadas son bastante frías. Te recomendamos vestirte "en capas" (casaca, chompa y polo).</p>
+        </article>
+        <article className="guide-card">
+          <div className="guide-icon">🕒</div>
+          <h3>Datos del Hostal</h3>
+          <p>Nuestro horario regular de <strong>Check-in es a las 11:00 AM</strong> y el <strong>Check-out a las 10:00 AM</strong>. Si llegas más temprano o tu vuelo sale más tarde, contamos con servicio de guardaequipaje gratuito.</p>
+        </article>
+      </div>
     </section>
   )
 }
@@ -549,7 +599,20 @@ function FaqWidget() {
   )
 }
 
-function Reservation({ errors, form, onChange, onSubmit, status, minDate }) {
+function Reservation({ errors, form, onChange, onSubmit, status, minDate, requestCode, onReset }) {
+  
+  const whatsappText = [
+    `Hola, he generado la solicitud ${requestCode} en la web y quisiera confirmar mi reserva en Chaquill Chak'a Hostal.`,
+    '',
+    `Nombre: ${form.name.trim()}`,
+    `Teléfono: ${form.phone.trim()}`,
+    form.email.trim() ? `Correo: ${form.email.trim()}` : null,
+    `Habitación: ${form.room}`,
+    `Huéspedes: ${form.guests}`,
+    `Llegada: ${form.arrival}`,
+    `Salida: ${form.departure}`,
+  ].filter(Boolean).join('\n')
+
   return (
     <section className="section reservation-section" id="reservation">
       <div className="two-column reservation-grid">
@@ -575,21 +638,71 @@ function Reservation({ errors, form, onChange, onSubmit, status, minDate }) {
           </div>
         </div>
 
-        <form className="contact-form" onSubmit={onSubmit} noValidate>
-          <div className="form-intro"><span>RESERVAS</span><h3>Consulta disponibilidad</h3><p>Los campos con * son obligatorios.</p></div>
-          <FormField error={errors.name} label="Nombre completo *"><input name="name" autoComplete="name" value={form.name} onChange={onChange} placeholder="Ej. María Pérez" required aria-invalid={Boolean(errors.name)} /></FormField>
-          <FormField error={errors.phone} label="Teléfono o WhatsApp *"><input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={onChange} placeholder="Tu número de contacto" required aria-invalid={Boolean(errors.phone)} /></FormField>
-          <FormField error={errors.email} label="Correo electrónico (opcional)"><input name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} placeholder="nombre@correo.com" aria-invalid={Boolean(errors.email)} /></FormField>
-          <FormField error={errors.guests} label="Número de huéspedes *"><select name="guests" value={form.guests} onChange={onChange} required aria-invalid={Boolean(errors.guests)}><option value="">Selecciona cantidad</option>{[1, 2, 3, 4, 5, 6, 7, 8].map((guest) => <option key={guest} value={guest}>{guest} {guest === 1 ? 'persona' : 'personas'}</option>)}</select></FormField>
-          <FormField error={errors.room} label="Tipo de habitación *"><select name="room" value={form.room} onChange={onChange} required aria-invalid={Boolean(errors.room)}><option value="">Selecciona una habitación</option>{rooms.map((room) => <option key={room.id} value={room.name}>{room.name}</option>)}</select></FormField>
-          <FormField error={errors.arrival} label="Fecha de llegada *"><input name="arrival" type="date" min={minDate} value={form.arrival} onChange={onChange} required aria-invalid={Boolean(errors.arrival)} /></FormField>
-          <FormField error={errors.departure} label="Fecha de salida *"><input name="departure" type="date" min={form.arrival || minDate} value={form.departure} onChange={onChange} required aria-invalid={Boolean(errors.departure)} /></FormField>
-          <label className="form-field full-field">Mensaje adicional (opcional)<textarea name="message" value={form.message} onChange={onChange} placeholder="¿Tienes alguna consulta o solicitud?" rows="3" /></label>
-          {status === 'error' && <p className="form-status error" role="alert">Hay campos por revisar. Lee los mensajes debajo de cada campo e inténtalo nuevamente.</p>}
-          {status === 'success' && <p className="form-status success" role="status">Tus datos están listos. Se abrió WhatsApp en otra pestaña; envía el mensaje para completar la consulta.</p>}
-          <button className="submit-button" type="submit">Enviar consulta por WhatsApp <span aria-hidden="true">→</span></button>
-          <small className="privacy-note">Este formulario prepara un mensaje; la reserva queda pendiente de confirmación del hostal.</small>
-        </form>
+        {status === 'success' ? (
+          <div className="contact-form success-panel">
+             <div className="success-icon-wrapper">
+               <svg className="success-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
+               </svg>
+             </div>
+             <h3>Solicitud Generada</h3>
+             <p className="success-subtitle">Tu código de reserva es <span className="highlight-code">{requestCode}</span></p>
+             
+             <div className="success-receipt">
+               <div className="receipt-row">
+                 <span>A nombre de</span>
+                 <strong>{form.name}</strong>
+               </div>
+               <div className="receipt-row">
+                 <span>Habitación</span>
+                 <strong>{form.room} ({form.guests} {form.guests == 1 ? 'huésped' : 'pax.'})</strong>
+               </div>
+               <div className="receipt-row">
+                 <span>Estadía</span>
+                 <strong>{form.arrival} al {form.departure}</strong>
+               </div>
+             </div>
+             
+             <div className="success-action-box">
+               <p>Para finalizar el proceso y confirmar disponibilidad, envía esta solicitud a nuestro WhatsApp.</p>
+               <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText)}`} target="_blank" rel="noopener noreferrer" className="submit-button whatsapp-button">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="wa-icon"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.55 4.195 1.597 6.012L.15 24l6.115-1.6c1.761.948 3.737 1.45 5.766 1.45 6.645 0 12.03-5.385 12.03-12.03C24 5.385 18.676 0 12.031 0zm0 21.905c-1.85 0-3.666-.497-5.263-1.442l-.377-.224-3.904 1.022 1.042-3.805-.246-.39C2.26 15.342 1.7 13.722 1.7 12.031c0-5.696 4.634-10.33 10.33-10.33 5.696 0 10.33 4.634 10.33 10.33 0 5.695-4.634 10.33-10.33 10.33zm5.666-7.72c-.31-.155-1.838-.908-2.122-1.012-.284-.103-.49-.155-.697.155-.206.31-.8 1.012-.98 1.218-.18.207-.36.233-.67.078-1.5-.75-2.585-1.41-3.565-2.7-.253-.333-.028-.514.126-.668.14-.14.31-.36.465-.54.155-.18.206-.31.31-.516.103-.207.052-.388-.026-.543-.078-.155-.697-1.68-.956-2.302-.253-.604-.51-.522-.697-.532-.18-.01-.388-.01-.595-.01-.206 0-.542.077-.826.387-.284.31-1.085 1.06-1.085 2.583 0 1.524 1.11 3.003 1.265 3.208.155.207 2.19 3.342 5.3 4.613.74.303 1.317.484 1.767.62.742.224 1.418.192 1.95.116.595-.084 1.837-.75 2.095-1.472.258-.723.258-1.342.18-1.472-.077-.13-.284-.207-.594-.362z"/></svg>
+                  Confirmar reserva
+               </a>
+             </div>
+             
+             <button type="button" className="text-button mt-4" onClick={onReset}>Hacer otra consulta</button>
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={onSubmit} noValidate>
+            <div className="form-intro"><span>RESERVAS</span><h3>Consulta disponibilidad</h3><p>Los campos con * son obligatorios.</p></div>
+            <FormField error={errors.name} label="Nombre completo *"><input name="name" autoComplete="name" value={form.name} onChange={onChange} placeholder="Ej. María Pérez" required aria-invalid={Boolean(errors.name)} /></FormField>
+            <FormField error={errors.phone} label="Teléfono o WhatsApp *"><input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={onChange} placeholder="Tu número de contacto" required aria-invalid={Boolean(errors.phone)} /></FormField>
+            <FormField error={errors.email} label="Correo electrónico *"><input name="email" type="email" autoComplete="email" value={form.email} onChange={onChange} placeholder="nombre@correo.com" required aria-invalid={Boolean(errors.email)} /></FormField>
+            
+            <div className="form-row">
+              <FormField error={errors.guests} label="Número de huéspedes *"><select name="guests" value={form.guests} onChange={onChange} required aria-invalid={Boolean(errors.guests)}><option value="">Selecciona cantidad</option>{[1, 2, 3, 4, 5, 6, 7, 8].map((guest) => <option key={guest} value={guest}>{guest} {guest === 1 ? 'persona' : 'personas'}</option>)}</select></FormField>
+              <FormField error={errors.room} label="Tipo de habitación *"><select name="room" value={form.room} onChange={onChange} required aria-invalid={Boolean(errors.room)}><option value="">Selecciona una habitación</option>{rooms.map((room) => <option key={room.id} value={room.name}>{room.name}</option>)}</select></FormField>
+            </div>
+            
+            <div className="form-row">
+              <FormField error={errors.arrival} label="Fecha de llegada *"><input name="arrival" type="date" min={minDate} value={form.arrival} onChange={onChange} required aria-invalid={Boolean(errors.arrival)} /></FormField>
+              <FormField error={errors.departure} label="Fecha de salida *"><input name="departure" type="date" min={form.arrival || minDate} value={form.departure} onChange={onChange} required aria-invalid={Boolean(errors.departure)} /></FormField>
+            </div>
+            
+            <label className="form-field full-field checkbox-field">
+              <input type="checkbox" name="privacy" checked={form.privacy} onChange={onChange} required aria-invalid={Boolean(errors.privacy)} />
+              <span>Acepto la <a href="#privacy">Política de Privacidad</a> y consiento el tratamiento de mis datos personales según la Ley N° 29733. *</span>
+            </label>
+            {errors.privacy && <small className="field-error checkbox-error">{errors.privacy}</small>}
+
+            {status === 'error' && <p className="form-status error" role="alert">Hay campos por revisar. Lee los mensajes debajo de cada campo e inténtalo nuevamente.</p>}
+            
+            <button className="submit-button" type="submit">Generar solicitud de reserva <span aria-hidden="true">→</span></button>
+            <small className="privacy-note">Esta acción generará un código seguro sin compromiso de pago inmediato.</small>
+          </form>
+        )}
       </div>
     </section>
   )

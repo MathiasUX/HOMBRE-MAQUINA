@@ -372,3 +372,230 @@ footer { padding: 58px max(24px, calc((100% - 1140px) / 2)) 50px; background: li
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; transition-delay: 0s !important; animation-duration: .01ms !important; }
 }
+
+/* --- NUEVOS ESTILOS PARA APF2 --- */
+
+/* Guía Turística */
+.guide-section {
+  background-color: #f9f9f9;
+}
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+.guide-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.guide-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.guide-card h3 {
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+.guide-card p {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Modales y Consulta */
+.consult-modal {
+  max-width: 450px !important;
+}
+.consult-form {
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.consult-result {
+  text-align: center;
+  padding: 1rem 0;
+}
+.status-badge {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+.status-badge.pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+/* Formulario - Checkbox */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.checkbox-field {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.checkbox-field input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+.checkbox-field span {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: normal;
+  color: #555;
+}
+.checkbox-field a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+.checkbox-error {
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Panel de Éxito */
+.success-panel {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+.success-panel h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+}
+.success-instruction {
+  margin-top: 1.5rem;
+  font-weight: bold;
+}
+.success-summary {
+  background: #f1f5f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  width: 100%;
+  text-align: left;
+}
+.success-summary p {
+  margin-bottom: 0.5rem;
+}
+.success-summary p:last-child {
+  margin-bottom: 0;
+}
+.whatsapp-button {
+  background-color: #25D366 !important;
+  color: white !important;
+}
+.whatsapp-button:hover {
+  background-color: #128C7E !important;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+/* --- Estilos Modernos del Panel de Éxito --- */
+.success-icon-wrapper {
+  background-color: #e6f9ed;
+  color: #25D366;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+}
+.success-svg {
+  width: 40px;
+  height: 40px;
+}
+.success-subtitle {
+  color: #555;
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+}
+.highlight-code {
+  background-color: #f1f5f9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 0.5px;
+  border: 1px dashed #cbd5e1;
+}
+.success-receipt {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  width: 100%;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.receipt-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.receipt-row span {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+.receipt-row strong {
+  color: #0f172a;
+  text-align: right;
+  max-width: 60%;
+}
+.success-action-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  text-align: center;
+}
+.success-action-box p {
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 1rem;
+}
+.whatsapp-button {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+.wa-icon {
+  margin-top: -2px;
+}
